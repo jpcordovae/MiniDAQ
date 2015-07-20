@@ -12,5 +12,5 @@ all: $(TARGETS)
 tcp_client: examples/client_50ms.cpp src/common.cpp src/tcp_client.hpp
 	$(CC) $? $(CXXFLAGS) $(LDFLAGS) -o $@ -gdwarf-2 -g3
 
-tcp_service: examples/main_service_1.cpp src/common.cpp src/database.cpp src/tcp_service.hpp src/config.cpp
-	$(CC) $? $(CXXFLAGS) $(LDFLAGS) -o $@ -gdwarf-2 -g3
+tcp_service: examples/main_service_1.cpp src/common.cpp src/database.cpp src/tcp_service.hpp src/config.cpp src/frontend.cpp
+	$(CC) $? $(CXXFLAGS) $(LDFLAGS) -lncurses -o $@ -gdwarf-2 -g3
