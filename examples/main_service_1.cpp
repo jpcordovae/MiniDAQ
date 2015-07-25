@@ -1,5 +1,14 @@
+//
+// asynchronous tcp DAQ service for microcontrollers
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//
+// July 2015 
+// Juan Pablo Cordova E. (jpcordovae@gmail.com)
+//
+
 #include <cstdlib>
 #include <iostream>
+#include <string>
 
 #define VERSION "0.1"
 
@@ -9,17 +18,22 @@
 #include "tcp_client.hpp"
 #include <boost/thread.hpp>
 #include "config.hpp"
+#include "frontend.hpp"
 
 CDatabase_ptr db_ptr = CDatabase_ptr(new CDatabase);
 
 void demonize_process(void)
 {
-  //
+  //TODO
+}
+
+void ncurses_thread()
+{
+  create_main_window();
 }
 
 void show_banner()
-{
-                      
+{                      
   std::cout << " _____ ____    _     " << std::endl;
   std::cout << "|_   _|  _ \\  / \\    " << std::endl;
   std::cout << "  | | | | | |/ _ \\   " << std::endl;
@@ -28,7 +42,6 @@ void show_banner()
   std::cout << "                     " << std::endl;
   std::cout << "TCP Data Acquisition " << std::endl;
   std::cout << "******************** " << std::endl;
-
 }
 
 void show_config()
@@ -47,12 +60,15 @@ void show_config()
 int main(int argc, char *argv[])
 {
   show_banner();
+
   std::cout << "VERSION " << VERSION << std::endl;
   std::cout << "started at " <<  timestamp_sql() << std::endl;
-  std::cout << "reading config file at " << argv[2] << std::endl;
-  read_config_file(argv[2],service_config);
+  std::cout << "reading config file from " << argv[1] << std::endl;
+
+  read_config_file(argv[1],service_config);
+
   show_config();
-  
+
   try
     {
       if (argc <= 1)
@@ -67,34 +83,32 @@ int main(int argc, char *argv[])
       db_ptr->set_database(service_config.dbdatabase.c_str()); // for schema
       
       if(db_ptr->connect())
-        {
-	  std::cout << "connected to database " << db_ptr->get_database() << std::endl;
-        }else
 	{
-	  std::cout << "problems openning database " << db_ptr->get_database() << " at host " << db_ptr->get_host() << std::endl;
+	  std::cout << "connected to database " << db_ptr->get_database() << std::endl;
+	}else
+	{
+	  std::cout << "problems openning database " << db_ptr->get_database() << std::endl;
 	  exit(EXIT_FAILURE);
 	}
       
       boost::asio::io_service io_service;
       
-      server s(io_service, std::atoi(argv[1]));
+      server s(io_service, std::stoi(service_config.service_port,0,10));
+
       s.set_query_begin(service_config.query_begin);
       s.set_query_end(service_config.query_end);
+
+      /*boost::thread([](){
+	  create_main_window();
+	  });*/
       
       io_service.run();
       
     }catch (std::exception& e)
     {
-      std::cerr << "Exception: " << e.what() << "\n";
+      std::cerr << std::endl << "Exception: " << e.what() << "\n";
     }
   
-  string input_text;
-  
-  while(input_text.compare("quit"))
-    {
-      std::cin >> input_text;
-      std::cout << "input: " << input_text << std::endl;
-    }
   
   return EXIT_SUCCESS;
 }
