@@ -1,14 +1,13 @@
 //
-// asynchronous tcp mysql service for microcontrollers
+// asynchronous tcp DAQ service for microcontrollers
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
 // July 2015 
 // Juan Pablo Cordova E. (jpcordovae@gmail.com)
 //
-// Orignal file from asynchronous tcp service example 
+// Orignal file asynchronous tcp service example 
 // from Christopher M. Kohlhoff (chris@kohlhoff.com)
 //
-
 
 #ifndef TCP_DB_SERVICE_HPP
 #define TCP_DB_SERVICE_HPP
@@ -55,9 +54,7 @@ private:
   void do_read()
   {
     auto self(shared_from_this());
-    std::cout << "do_read()" << std::endl;
-    // socket_.async_read_some(boost::asio::buffer(data_, max_length),
-    boost::asio::async_read_until(socket_,input_buffer_,'\n', // comment this line
+    boost::asio::async_read_until(socket_,input_buffer_,'\n',
 				  [this, self](boost::system::error_code ec, std::size_t length) // uncomment commented
 				  {
 				    if (!ec)
@@ -69,7 +66,6 @@ private:
 					    ss << &input_buffer_;
 					    to_insert = ss.str();
 					    to_insert = query_begin + to_insert + query_end;
-					    //std::cout << to_insert << std::endl;
 					    db_ptr->insert(to_insert);
 					  }catch(std::exception &e)
 					  {
@@ -84,7 +80,7 @@ private:
   {
     auto self(shared_from_this());
     boost::asio::async_write(socket_, boost::asio::buffer(data_, length),
-			     [this, self](boost::system::error_code ec, std::size_t /*length*/)
+			     [this, self](boost::system::error_code ec, std::size_t)
 			     {
 			       if (!ec)
 				 {
@@ -149,7 +145,7 @@ private:
   tcp::socket socket_;
   std::string query_begin;
   std::string query_end;
-};
 
+};
 
 #endif

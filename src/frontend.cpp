@@ -1,4 +1,6 @@
 #include "frontend.hpp"
+#include <sys/ioctl.h>
+#include <signal.h>
 
 WINDOW *MAIN_WINDOW;
 
@@ -21,19 +23,30 @@ void resize_main_window(int dummy)
 {
   signal(SIGWINCH,SIG_IGN);
   endwin();
-  //initscr();
-  clear();
-  int lines = atoi(getenv("LINES"));
-  int columns = atoi(getenv("COLUMNS"));
-  wresize(MAIN_WINDOW,lines,columns);
+  initscr();
   refresh();
+  clear();
+
+  int x,y;
+  struct winsize ws;
+  ioctl(0,TIOCGWINSZ, &ws);
+  
+  x = ws.ws_col;
+  y = ws.ws_row;
+
+  //MAIN_WINDOW = new_win(x,y,0,0);
+  wresize(MAIN_WINDOW,y,x);
+  wclear(MAIN_WINDOW);
+  box(MAIN_WINDOW,0,0);
+  wrefresh(MAIN_WINDOW);
+  //doupdate();
+  
   signal(SIGWINCH,resize_main_window);
 }
 
 void create_main_window()
 {
-  WINDOW *my_win;
-  int startx, starty, width, height;
+  //WINDOW *my_win;
   int ch;
 
   initscr();			/* Start curses mode 		*/
@@ -41,31 +54,38 @@ void create_main_window()
 				 * everty thing to me 		*/
   keypad(stdscr, TRUE);		/* I need that nifty F1 	*/
 
-  height = 3;
-  width = 10;
-  starty = (LINES - height) / 2;	/* Calculating for a center placement */
-  startx = (COLS - width) / 2;	/* of the window		*/
   printw("Press F1 to exit");
+  
   refresh();
-  my_win = new_win(height, width, starty, startx);
 
+  int x,y;
+  struct winsize ws;
+  ioctl(0,TIOCGWINSZ, &ws);
+  x = ws.ws_col;
+  y = ws.ws_row;
+  MAIN_WINDOW = new_win(y,x,0,0);
+  
+  signal(SIGWINCH,resize_main_window);
+  
   while((ch = getch()) != KEY_F(1))
-    {	switch(ch)
-	{	case KEY_LEFT:
-	    delete_win(my_win);
-	    my_win = new_win(height, width, starty,--startx);
-	    break;
+    {	
+      switch(ch)
+	{	
+	case KEY_LEFT:
+	  //delete_win(my_win);
+	  //my_win = new_win(height, width, starty,--startx);
+	  break;
 	case KEY_RIGHT:
-	  delete_win(my_win);
-	  my_win = new_win(height, width, starty,++startx);
+	  //delete_win(my_win);
+	  //my_win = new_win(height, width, starty,++startx);
 	  break;
 	case KEY_UP:
-	  delete_win(my_win);
-	  my_win = new_win(height, width, --starty,startx);
+	  //delete_win(my_win);
+	  //my_win = new_win(height, width, --starty,startx);
 	  break;
 	case KEY_DOWN:
-	  delete_win(my_win);
-	  my_win = new_win(height, width, ++starty,startx);
+	  //delete_win(my_win);
+	  //my_win = new_win(height, width, ++starty,startx);
 	  break;	
 	}
     }
